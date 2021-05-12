@@ -286,7 +286,7 @@ module JSONAPI
 
       def resources_from_relationship(source_klass, source_id, relationship_type, context)
         rid = source_klass.find_related_fragments(
-          [JSONAPI::ResourceIdentity.new(source_klass, source_id)],
+          [JSONAPI::ResourceFragment.new(JSONAPI::ResourceIdentity.new(source_klass, source_id))],
           relationship_type,
           context: context
         ).keys.first

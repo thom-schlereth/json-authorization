@@ -76,7 +76,7 @@ Hook up this gem as the default processor for JR, and optionally allow rescuing 
 # config/initializers/jsonapi-resources.rb
 JSONAPI.configure do |config|
   config.default_processor_klass = JSONAPI::Authorization::AuthorizingProcessor
-  config.exception_class_whitelist = [Pundit::NotAuthorizedError]
+  config.exception_class_allowlist = [Pundit::NotAuthorizedError]
 end
 ```
 
