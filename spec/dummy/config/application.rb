@@ -28,6 +28,6 @@ class Application < Rails::Application
 end
 
 JSONAPI.configure do |config|
-  config.default_processor_klass = JSONAPI::Authorization::AuthorizingProcessor
+  config.default_processor_klass_name = JSONAPI::Authorization::AuthorizingProcessor
   config.exception_class_allowlist = [Pundit::NotAuthorizedError]
 end
