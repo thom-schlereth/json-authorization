@@ -11,4 +11,12 @@ class JSONAPI::BasicResource
     end
     resource
   end
+
+  def _model_class_name(key_type, context)
+    type_class_name = key_type.to_s.classify
+    klass = type_class_name.safe_constantize.new
+    resource = self.class.resource_for(klass, context)
+    resource ? resource._model.class.to_s : type_class_name
+  end
+
 end
