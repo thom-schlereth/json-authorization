@@ -16,17 +16,21 @@ ActiveRecord::Schema.define(version: 2016_01_25_083537) do
     t.string "external_id", null: false
     t.integer "author_id"
     t.string "blank_value"
+    t.index ["author_id"], name: "index_articles_on_author_id"
   end
 
   create_table "comments", force: :cascade do |t|
     t.string "article_id"
     t.integer "author_id"
     t.integer "reviewing_user_id"
+    t.index ["author_id"], name: "index_comments_on_author_id"
+    t.index ["reviewing_user_id"], name: "index_comments_on_reviewing_user_id"
   end
 
   create_table "tags", force: :cascade do |t|
-    t.integer "taggable_id"
     t.string "taggable_type"
+    t.integer "taggable_id"
+    t.index ["taggable_type", "taggable_id"], name: "index_tags_on_taggable_type_and_taggable_id"
   end
 
   create_table "users", force: :cascade do |t|
