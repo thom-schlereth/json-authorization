@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # spec.add_dependency "jsonapi-resources", "~> 0.9.12"
-  spec.add_dependency "jsonapi-resources", ">= 0.10"
+  spec.add_dependency "jsonapi-resources"
   spec.add_dependency "pundit", ">= 1.0.0", "< 3.0.0"
   spec.add_dependency "rails", "~> 6.0.0"
 
