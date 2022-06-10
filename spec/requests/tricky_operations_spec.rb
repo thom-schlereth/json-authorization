@@ -18,7 +18,7 @@ RSpec.describe 'Tricky operations', type: :request do
     header 'Content-Type', 'application/vnd.api+json'
   end
 
-  describe 'POST /comments (with relationships link to articles)' do
+  xdescribe 'POST /comments (with relationships link to articles)' do
     subject(:last_response) { post("/comments", json) }
     let(:json) do
       <<-EOS.strip_heredoc
@@ -49,14 +49,18 @@ RSpec.describe 'Tricky operations', type: :request do
       let(:policy_scope) { Article.where(id: article.id) }
       before { allow_operation('create_resource', source_class: Comment, related_records_with_context: related_records_with_context) }
 
-      it { is_expected.to be_successful }
+      it {
+        is_expected.to be_successful
+      }
     end
 
     context 'unauthorized for create_resource on Comment and newly associated article' do
       let(:policy_scope) { Article.where(id: article.id) }
       before { disallow_operation('create_resource', source_class: Comment, related_records_with_context: related_records_with_context) }
 
-      it { is_expected.to be_forbidden }
+      it {
+        is_expected.to be_forbidden
+       }
 
       context 'which is out of scope' do
         let(:policy_scope) { Article.none }
@@ -147,8 +151,9 @@ RSpec.describe 'Tricky operations', type: :request do
 
     context 'authorized for create_resource on Tag and newly associated article' do
       let(:policy_scope) { Article.where(id: article.id) }
-      before { allow_operation('create_resource', source_class: Tag, related_records_with_context: related_records_with_context) }
-
+      before {
+        allow_operation('create_resource', source_class: Tag, related_records_with_context: related_records_with_context)
+      }
       it { is_expected.to be_successful }
     end
 

@@ -1,7 +1,8 @@
 class TagPolicy
   class Scope < Struct.new(:user, :scope)
     def resolve
-      raise NotImplementedError
+      # true
+      Tag.all
     end
   end
 
@@ -13,22 +14,22 @@ class TagPolicy
   end
 
   def index?
-    raise NotImplementedError
+    true
   end
 
   def show?
-    raise NotImplementedError
+    true
   end
 
   def create?
-    raise NotImplementedError
+    true
   end
 
   def update?
-    raise NotImplementedError
+    true
   end
 
   def destroy?
-    raise NotImplementedError
+    true
   end
 end

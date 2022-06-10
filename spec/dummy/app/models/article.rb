@@ -1,4 +1,6 @@
 class Article < ActiveRecord::Base
+  # primary_key = :external_id
+
   has_many :comments
   has_many :tags, as: :taggable
   belongs_to :author, class_name: 'User'

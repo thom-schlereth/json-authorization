@@ -1,7 +1,7 @@
 class ArticlePolicy
   class Scope < Struct.new(:user, :scope)
     def resolve
-      raise NotImplementedError
+      Article.all
     end
   end
 
@@ -13,50 +13,50 @@ class ArticlePolicy
   end
 
   def index?
-    raise NotImplementedError
+    true
   end
 
   def show?
-    raise NotImplementedError
+    true
   end
 
   def create?
-    raise NotImplementedError
+    true
   end
 
   def update?
-    raise NotImplementedError
+    true
   end
 
   def destroy?
-    raise NotImplementedError
+    true
   end
 
   def create_with_author?(_author)
-    raise NotImplementedError
+    true
   end
 
   def create_with_comments?(_comments)
-    raise NotImplementedError
+    true
   end
 
   def add_to_comments?(_comments)
-    raise NotImplementedError
+    true
   end
 
   def replace_comments?(_comments)
-    raise NotImplementedError
+    true
   end
 
   def remove_from_comments?(_comment)
-    raise NotImplementedError
+    true
   end
 
   def replace_author?(_author)
-    raise NotImplementedError
+    true
   end
 
   def remove_author?
-    raise NotImplementedError
+    true
   end
 end

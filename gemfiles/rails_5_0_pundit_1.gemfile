@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-gem "jsonapi-resources", git: "https://github.com/cerebris/jsonapi-resources.git", branch: "use_records_for_joined_resources"
+gem "jsonapi-resources", ">= 0.10.7"
 gem "rails", "5.0.0"
 gem "pundit", "~> 1.0"
 

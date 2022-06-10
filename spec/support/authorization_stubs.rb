@@ -3,7 +3,6 @@ module AuthorizationStubs
 
   def allow_operation(operation, authorizer: instance_double(AUTHORIZER_CLASS), **kwargs)
     allow(authorizer).to receive(operation).with(**kwargs).and_return(nil)
-
     allow(AUTHORIZER_CLASS).to receive(:new).with(context: kind_of(Hash)).and_return(authorizer)
     authorizer
   end

@@ -1,5 +1,6 @@
 require "jsonapi-resources"
 require "jsonapi/authorization/authorizing_processor"
+require "jsonapi/authorization/basic_resources"
 require "jsonapi/authorization/configuration"
 require "jsonapi/authorization/default_pundit_authorizer"
 require "jsonapi/authorization/pundit_scoped_resource"
