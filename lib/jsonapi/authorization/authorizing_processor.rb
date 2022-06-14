@@ -66,13 +66,16 @@ module JSONAPI
           params[:parent_key],
           context: context
         )
+        source_klass = parent_resource.class
+        source_id = parent_resource.id
 
         relationship = @resource_klass._relationship(params[:relationship_type].to_sym)
-
+        # require "pry"
+        # binding.pry
         related_resource =
           case relationship
           when JSONAPI::Relationship::ToOne
-            resources_from_relationship(source_klass, source_id, relationship.type, context).first
+            resources_from_relationship(source_klass, source_id, relationship.name.to_sym, context).first
           when JSONAPI::Relationship::ToMany
             # Do nothing — already covered by policy scopes
           else
@@ -287,7 +290,7 @@ module JSONAPI
 
       def resources_from_relationship(source_klass, source_id, relationship_type, context)
         rid = source_klass.find_related_fragments(
-          [JSONAPI::ResourceFragment.new(JSONAPI::ResourceIdentity.new(source_klass, source_id))],
+          [JSONAPI::ResourceIdentity.new(source_klass, source_id)],
           relationship_type,
           context: context
         ).keys.first

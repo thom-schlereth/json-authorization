@@ -29,5 +29,6 @@ end
 
 JSONAPI.configure do |config|
   config.default_processor_klass = JSONAPI::Authorization::AuthorizingProcessor
-  config.exception_class_allowlist = [Pundit::NotAuthorizedError]
+  config.exception_class_whitelist = [Pundit::NotAuthorizedError]
+  # config.exception_class_allowlist = [Pundit::NotAuthorizedError]
 end

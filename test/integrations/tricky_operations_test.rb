@@ -30,17 +30,22 @@ class TrickyOperationsTest < ActionDispatch::IntegrationTest
     }
 
     test 'authorized for create_resource on Comment and newly associated article' do
-      post '/comments', params: params.to_json, headers: headers
+      require "pry"
+      binding.pry
+      get("/articles/#{article.external_id}/relationships/author", headers: headers)
+      # post '/comments', params: params.to_json, headers: headers
       expect(status).to eq(201)
     end
 
     test 'unauthorized for create_resource on Comment and newly associated article' do
+      skip
       headers['status-type'] = 403
       post '/comments', params: params.to_json, headers: headers
       expect(status).to eq(403)
     end
 
     test 'unauthorized for create_resource on Comment which is out of scope' do
+      skip
       headers['status-type'] = 404
       post '/comments', params: params.to_json, headers: headers
       expect(status).to eq(404)
@@ -66,9 +71,7 @@ class TrickyOperationsTest < ActionDispatch::IntegrationTest
 
     test 'ppp' do
     # test 'authorized for create_resource on Tag and newly associated article' do
-      # post '/tags', params: params.to_json, headers: headers
-      require "pry"
-      # binding.pry
+      skip
       post '/tags', params: params.to_json, headers: headers
       expect(status).to eq(201)
     end

@@ -1,7 +1,7 @@
 class UserPolicy
   class Scope < Struct.new(:user, :scope)
     def resolve
-      raise NotImplementedError
+      User.all
     end
   end
 
@@ -13,22 +13,22 @@ class UserPolicy
   end
 
   def index?
-    raise NotImplementedError
+    true
   end
 
   def show?
-    raise NotImplementedError
+    true
   end
 
   def create?
-    raise NotImplementedError
+    true
   end
 
   def update?
-    raise NotImplementedError
+    true
   end
 
   def destroy?
-    raise NotImplementedError
+    true
   end
 end
