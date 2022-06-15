@@ -23,6 +23,22 @@ class ApplicationPolicy
     end
   end
 
+  def update?
+    if policy.dig(:update, :forbidden) && policy.dig(:update, :klass) == record.class.to_s
+      false
+    else
+      true
+    end
+  end
+
+  def create?
+    if policy.dig(:create, :forbidden) && policy.dig(:create, :klass) == record.to_s
+      false
+    else
+      true
+    end
+  end
+
   class Scope < Struct.new(:context, :scope)
 
     attr_reader :policy, :user, :scope
@@ -34,12 +50,13 @@ class ApplicationPolicy
     end
 
     def resolve
-      # binding.pry
       case policy.keys.first
       when :index
         scope.index_scope(policy)
       when :show
         scope.show_scope(policy)
+      else
+        model.all
       end
       # if policy[:show]
         # scope.show_scope(policy)
