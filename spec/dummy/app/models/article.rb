@@ -1,5 +1,4 @@
 class Article < ActiveRecord::Base
-  # primary_key = :external_id
 
   has_many :comments
   has_many :tags, as: :taggable
@@ -24,4 +23,13 @@ class Article < ActiveRecord::Base
   def blank_value_must_be_blank
     errors.add(:blank_value, 'must be blank') unless blank_value.blank?
   end
+
+  scope :index_scope, ->(policy) {
+    self.where('id = ?', policy.dig(:index, :message))
+  }
+
+  scope :show_scope, ->(policy) {
+    self.all
+  }
+
 end

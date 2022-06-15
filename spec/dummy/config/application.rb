@@ -32,3 +32,7 @@ JSONAPI.configure do |config|
   config.exception_class_whitelist = [Pundit::NotAuthorizedError]
   # config.exception_class_allowlist = [Pundit::NotAuthorizedError]
 end
+
+JSONAPI::Authorization.configure do |config|
+  config.pundit_user = ->(context){ context }
+end

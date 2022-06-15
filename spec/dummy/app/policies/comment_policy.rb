@@ -1,34 +1,14 @@
-class CommentPolicy
-  class Scope < Struct.new(:user, :scope)
-    def resolve
-      raise NotImplementedError
-    end
-  end
-
-  attr_reader :user, :record
-
-  def initialize(user, record)
-    @user = user
-    @record = record
-  end
-
-  def index?
-    raise NotImplementedError
-  end
-
-  def show?
-    raise NotImplementedError
-  end
+class CommentPolicy < ApplicationPolicy
 
   def create?
-    raise NotImplementedError
+    true
   end
 
   def update?
-    raise NotImplementedError
+    true
   end
 
   def destroy?
-    raise NotImplementedError
+    true
   end
 end

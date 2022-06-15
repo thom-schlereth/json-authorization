@@ -35,16 +35,14 @@ module JSONAPI
 
       def authorize_include_directive
         return if result.is_a?(::JSONAPI::ErrorsOperationResult)
-        resources = Array.wrap(
-          if result.respond_to?(:resources)
-            result.resources
-          elsif result.respond_to?(:resource)
-            result.resource
+        resources = result.resource_set.resource_klasses if result.respond_to?(:resource_set)
+        resources[resource_klass].each do |key, value|
+          if params[:include_directives]
+            params[:include_directives].include_directives.each do |include_item|
+              source_record = value[:resource]._model
+              authorize_include_item(@resource_klass, source_record, include_item[1])
+            end
           end
-        )
-
-        resources.each do |resource|
-          authorize_model_includes(resource._model)
         end
       end
 
@@ -70,8 +68,6 @@ module JSONAPI
         source_id = parent_resource.id
 
         relationship = @resource_klass._relationship(params[:relationship_type].to_sym)
-        # require "pry"
-        # binding.pry
         related_resource =
           case relationship
           when JSONAPI::Relationship::ToOne
@@ -354,14 +350,6 @@ module JSONAPI
         end
       end
 
-      def authorize_model_includes(source_record)
-        if params[:include_directives]
-          params[:include_directives].model_includes.each do |include_item|
-            authorize_include_item(@resource_klass, source_record, include_item)
-          end
-        end
-      end
-
       def authorize_include_item(resource_klass, source_record, include_item)
         case include_item
         when Hash
@@ -375,7 +363,7 @@ module JSONAPI
                 relationship.relation_name(context: context)
               )
             ).each do |next_source_record|
-              deep.each do |next_include_item|
+              deep[:include_related].each do |next_include_item|
                 authorize_include_item(
                   next_resource_klass,
                   next_source_record,

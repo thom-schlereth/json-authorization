@@ -7,7 +7,7 @@ class ApplicationController < ActionController::Base
   def context
     {
       user: nil,
-      status_type: request.headers['HTTP_STATUS_TYPE']
+      policy: request.headers['HTTP_POLICY']
     }
   end
 end
