@@ -410,7 +410,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     end
-<<<<<<< HEAD
+
     let(:forbidden_policy) { { forbidden: { action: :create, klass: 'Article' } } }
     let(:valid_policy) { {} }
     let(:create_special_policy) { { blank: :blank }}
@@ -423,10 +423,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       }
     }
 
-=======
-    let(:forbidden_policy) { { create: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { create: { klass: 'Article', skip_scope: true }} }
->>>>>>> parent of 5d064b2 (green)
     let(:existing_comments) do
       Array.new(2) { Comment.create }
     end
