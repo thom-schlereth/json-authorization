@@ -15,6 +15,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       let(:include_query) { 'comments' }
 
       context 'unauthorized for include_has_many_resource for Comment' do
+        let(:forbidden_policy) { { forbidden: { klass: 'Comment', action: :index }} }
         before {
           header 'POLICY', forbidden_policy
         }
@@ -140,13 +141,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
           end
 
           describe 'second level resources' do
-            let(:valid_policy) {
-              {
-                scope: { title: :by_author_id_for_comment, message: article.author.id }
-              }
-            }
-
-            before { header 'POLICY', valid_policy }
+            before { header 'POLICY', create_special_policy || {scope: { title: :by_author_id_for_comment, message: article.author.id }}}
 
             it 'includes only resources allowed by policy scope' do
               second_level_items = json_included.select { |item| item['type'] == 'comments' }
@@ -333,11 +328,11 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       { scope:
         {
           title: :by_article_id,
-          message: article.id,
-          models: ["Article", "Comment"]
+          message: article.id
         }
       }
     }
+    let(:create_special_policy) {}
 
     subject(:last_response) { get("/articles?include=#{include_query}") }
 
@@ -356,8 +351,9 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { show: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
+    let(:forbidden_policy) { { forbidden: { klass: 'User', action: :show }} }
+    let(:valid_policy) { { scope: { title: :by_author_id_for_comment, message: article.author.id }} }
+    let(:create_special_policy) {}
 
     subject(:last_response) { get("/articles/#{article.external_id}?include=#{include_query}") }
 
@@ -375,8 +371,9 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { update: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { update: { klass: 'Article', message: article.id }} }
+    let(:forbidden_policy) { { forbidden: { action: :update, klass: 'Article'}} }
+    let(:valid_policy) { { scope: { title: :by_article_id, message: article.id }} }
+    let(:create_special_policy) {}
 
     let(:attributes_json) { '{}' }
     let(:json) do
@@ -414,8 +411,13 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     end
-    let(:forbidden_policy) { { create: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { create: { klass: 'Article', skip_scope: true }} }
+    let(:forbidden_policy) { { forbidden: { action: :create, klass: 'Article' } } }
+    let(:valid_policy) { {} }
+    let(:create_special_policy) {
+      { blank: :blank
+      }
+    }
+
     let(:existing_comments) do
       Array.new(2) { Comment.create }
     end
@@ -456,7 +458,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       let(:include_query) { 'author.comments' }
       let(:attributes_json) { '{ "blank-value": "indifferent" }' }
       before {
-        header 'POLICY', valid_policy
+        header 'POLICY', {}
       }
 
       it 'does not run include authorizations and fails with validation error' do
@@ -475,8 +477,9 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { show: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
+    let(:forbidden_policy) { { forbidden: { action: :show, klass: 'Article'}} }
+    let(:valid_policy) { { scope: { title: :by_author_id_for_comment, message: article.author.id }} }
+    let(:create_special_policy) {}
 
     subject(:last_response) { get("/articles/#{article.external_id}/articles?include=#{include_query}") }
 
@@ -494,8 +497,9 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { show: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
+    let(:forbidden_policy) { { forbidden: { action: :show, klass: 'Article'}} }
+    let(:valid_policy) { { scope: { title: :by_author_id_for_comment, message: article.author.id }} }
+    let(:create_special_policy) {}
 
     subject(:last_response) { get("/articles/#{article.external_id}/article?include=#{include_query}") }
 
