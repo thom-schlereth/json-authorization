@@ -8,7 +8,7 @@ class ApplicationPolicy
   end
 
   def index?
-    if policy.dig(:index, :forbidden) && policy.dig(:index, :klass) == record.to_s
+    if policy.dig(:forbidden, :action) == :index && policy.dig(:forbidden, :klass) == record.to_s
       false
     else
       true
@@ -16,7 +16,7 @@ class ApplicationPolicy
   end
 
   def show?
-    if policy.dig(:show, :forbidden) && policy.dig(:show, :klass) == record.class.to_s
+    if policy.dig(:forbidden, :action) == :show && policy.dig(:forbidden, :klass) == record.class.to_s
       false
     else
       true
@@ -24,7 +24,7 @@ class ApplicationPolicy
   end
 
   def update?
-    if policy.dig(:update, :forbidden) && policy.dig(:update, :klass) == record.class.to_s
+    if policy.dig(:forbidden, :action) == :update && policy.dig(:forbidden, :klass) == record.class.to_s
       false
     else
       true
@@ -32,7 +32,7 @@ class ApplicationPolicy
   end
 
   def create?
-    if policy.dig(:create, :forbidden) && policy.dig(:create, :klass) == record.to_s
+    if policy.dig(:forbidden, :action) == :create && policy.dig(:forbidden, :klass) == record.to_s
       false
     else
       true
@@ -50,17 +50,19 @@ class ApplicationPolicy
     end
 
     def resolve
-      case policy.keys.first
-      when :index
-        scope.index_scope(policy)
+      return model.all if policy.dig(:forbidden)
+      case policy.dig(:scope,:title)
+      when :by_article_id
+        scope.by_article_id(policy)
+      when :by_article_id
+        scope.by_author_id_for_comment(policy)
       when :show
         scope.show_scope(policy)
+      when :by_article_first_comment_id
+        scope.by_article_first_comment_id(policy)
       else
         model.all
       end
-      # if policy[:show]
-        # scope.show_scope(policy)
-      # end
     end
 
     private

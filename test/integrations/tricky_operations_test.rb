@@ -30,8 +30,6 @@ class TrickyOperationsTest < ActionDispatch::IntegrationTest
     }
 
     test 'authorized for create_resource on Comment and newly associated article' do
-      require "pry"
-      binding.pry
       get("/articles/#{article.external_id}/relationships/author", headers: headers)
       # post '/comments', params: params.to_json, headers: headers
       expect(status).to eq(201)

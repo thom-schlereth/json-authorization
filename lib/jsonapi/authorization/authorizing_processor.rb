@@ -35,15 +35,32 @@ module JSONAPI
 
       def authorize_include_directive
         return if result.is_a?(::JSONAPI::ErrorsOperationResult)
-        resources = result.resource_set.resource_klasses if result.respond_to?(:resource_set)
-        resources[resource_klass].each do |key, value|
-          if params[:include_directives]
-            params[:include_directives].include_directives.each do |include_item|
-              source_record = value[:resource]._model
-              authorize_include_item(@resource_klass, source_record, include_item[1])
-            end
+        resources = result.resource_set.resource_klasses[@resource_klass] if result.respond_to?(:resource_set)
+        if resources && params[:include_directives]
+          include_params = params[:include_directives].include_directives
+          resources.each do |id, current_resource|
+            source_record = current_resource[:resource]._model
+
+            # source_record = @resource_klass.records_base.first
+            dig_include_directive(resource_klass, source_record, include_params)
+            # get_include_directives(include_params)
+            # include_directives.each do |include_item|
+            #   #
+            #
+            #   include_params = include_params[:include_related][include_item]
+            # end
           end
         end
+      end
+
+      def dig_include_directive(current_resource_klass, source_record, include_directives)
+        include_directives[:include_related].each do |include_item, deep|
+          authorize_include_item(current_resource_klass, source_record, include_item)
+
+          next_resource_klass = current_resource_klass._relationship(include_item).resource_klass
+          dig_include_directive(next_resource_klass, source_record, deep)
+        end
+        return nil
       end
 
       def authorize_find
@@ -351,48 +368,23 @@ module JSONAPI
       end
 
       def authorize_include_item(resource_klass, source_record, include_item)
-        case include_item
-        when Hash
-          # e.g. {articles: [:comments, :author]} when ?include=articles.comments,articles.author
-          include_item.each do |rel_name, deep|
-            authorize_include_item(resource_klass, source_record, rel_name)
-            relationship = resource_klass._relationship(rel_name)
-            next_resource_klass = relationship.resource_klass
-            Array.wrap(
-              source_record.public_send(
-                relationship.relation_name(context: context)
-              )
-            ).each do |next_source_record|
-              deep[:include_related].each do |next_include_item|
-                authorize_include_item(
-                  next_resource_klass,
-                  next_source_record,
-                  next_include_item
-                )
-              end
-            end
-          end
-        when Symbol
-          relationship = resource_klass._relationship(include_item)
-          case relationship
-          when JSONAPI::Relationship::ToOne
-            related_record = source_record.public_send(
-              relationship.relation_name(context: context)
-            )
-            return if related_record.nil?
-            authorizer.include_has_one_resource(
-              source_record: source_record, related_record: related_record
-            )
-          when JSONAPI::Relationship::ToMany
-            authorizer.include_has_many_resource(
-              source_record: source_record,
-              record_class: relationship.resource_klass._model_class
-            )
-          else
-            raise "Unexpected relationship type: #{relationship.inspect}"
-          end
+        relationship = resource_klass._relationship(include_item)
+        case relationship
+        when JSONAPI::Relationship::ToOne
+          related_record = source_record.public_send(
+            relationship.relation_name(context: context)
+          )
+          return if related_record.nil?
+          authorizer.include_has_one_resource(
+            source_record: source_record, related_record: related_record
+          )
+        when JSONAPI::Relationship::ToMany
+          authorizer.include_has_many_resource(
+            source_record: source_record,
+            record_class: relationship.resource_klass._model_class
+          )
         else
-          raise "Unknown include directive: #{include_item}"
+          raise "Unexpected relationship type: #{relationship.inspect}"
         end
       end
     end

@@ -30,6 +30,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         it { is_expected.to be_successful }
 
         it 'includes only comments allowed by policy scope and associated with the article' do
+
           expect(json_included.length).to eq(article.comments.count)
 
           expect(
@@ -65,36 +66,30 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
     end
 
-    xdescribe 'multiple one-level deep relationships' do
+    describe 'multiple one-level deep relationships' do
       let(:include_query) { 'author,comments' }
 
       context 'unauthorized for include_has_one_resource for article.author' do
-        before do
-          # disallow_operation(
-          #   'include_has_one_resource',
-          #   source_record: an_instance_of(Article),
-          #   related_record: an_instance_of(User),
-          #   authorizer: chained_authorizer
-          # )
-        end
+        let(:forbidden_policy) {{ forbidden: { action: :show, klass: "User" }}}
+        before {
+          header 'POLICY', forbidden_policy
+        }
 
         it { is_expected.to be_forbidden }
       end
 
       context 'unauthorized for include_has_many_resource for Comment' do
-        before do
-          allow_operation('include_has_one_resource', source_record: an_instance_of(Article), related_record: an_instance_of(User), authorizer: chained_authorizer)
-          disallow_operation('include_has_many_resource', source_record: an_instance_of(Article), record_class: Comment, authorizer: chained_authorizer)
-        end
-
+        let(:forbidden_policy) {{ forbidden: { action: :index, klass: "Comment" }}}
+        before {
+          header 'POLICY', forbidden_policy
+        }
         it { is_expected.to be_forbidden }
       end
 
       context 'authorized for both operations' do
-        before do
-          allow_operation('include_has_one_resource', source_record: an_instance_of(Article), related_record: an_instance_of(User), authorizer: chained_authorizer)
-          allow_operation('include_has_many_resource', source_record: an_instance_of(Article), record_class: Comment, authorizer: chained_authorizer)
-        end
+        before {
+          header 'POLICY', valid_policy
+        }
 
         it { is_expected.to be_successful }
 
@@ -113,33 +108,29 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
     end
 
-    xdescribe 'a deep relationship' do
+    describe 'a deep relationship' do
       let(:include_query) { 'author.comments' }
 
       context 'unauthorized for first relationship' do
+        let(:forbidden_policy) {{ forbidden: { action: :show, klass: "User" }}}
         before {
-          disallow_operation(
-            'include_has_one_resource',
-            source_record: an_instance_of(Article),
-            related_record: an_instance_of(User),
-            authorizer: chained_authorizer
-          )
+          header 'POLICY', forbidden_policy
         }
 
         it { is_expected.to be_forbidden }
       end
 
       context 'authorized for first relationship' do
-        before { allow_operation('include_has_one_resource', source_record: an_instance_of(Article), related_record: an_instance_of(User), authorizer: chained_authorizer) }
 
         context 'unauthorized for second relationship' do
-          before { disallow_operation('include_has_many_resource', source_record: an_instance_of(User), record_class: Comment, authorizer: chained_authorizer) }
+          let(:forbidden_policy) {{ forbidden: { action: :index, klass: "Comment" }}}
+          before { header 'POLICY', forbidden_policy }
 
           it { is_expected.to be_forbidden }
         end
 
         context 'authorized for second relationship' do
-          before { allow_operation('include_has_many_resource', source_record: an_instance_of(User), record_class: Comment, authorizer: chained_authorizer) }
+          before { header 'POLICY', valid_policy }
 
           it { is_expected.to be_successful }
 
@@ -149,6 +140,14 @@ RSpec.describe 'including resources alongside normal operations', type: :request
           end
 
           describe 'second level resources' do
+            let(:valid_policy) {
+              {
+                scope: { title: :by_author_id_for_comment, message: article.author.id }
+              }
+            }
+
+            before { header 'POLICY', valid_policy }
+
             it 'includes only resources allowed by policy scope' do
               second_level_items = json_included.select { |item| item['type'] == 'comments' }
               expect(second_level_items.length).to eq(article.author.comments.count)
@@ -161,9 +160,13 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
     end
 
-    xdescribe 'a deep relationship with empty relations' do
+    describe 'a deep relationship with empty relations' do
       context 'first level has_one is nil' do
         let(:include_query) { 'non-existing-article.comments' }
+
+        before {
+          header 'POLICY', {}
+        }
 
         it { is_expected.to be_successful }
       end
@@ -172,14 +175,18 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         let(:include_query) { 'empty-articles.comments' }
 
         context 'unauthorized for first relationship' do
-          before { disallow_operation('include_has_many_resource', source_record: an_instance_of(Article), record_class: Article, authorizer: chained_authorizer) }
+          let(:forbidden_policy) {{ forbidden: { action: :index, klass: "Article" }}}
+          before {
+            header 'POLICY', forbidden_policy
+          }
 
           it { is_expected.to be_forbidden }
         end
 
         context 'authorized for first relationship' do
-          before { allow_operation('include_has_many_resource', source_record: an_instance_of(Article), record_class: Article, authorizer: chained_authorizer) }
-
+          before {
+            header 'POLICY', {}
+          }
           it { is_expected.to be_successful }
         end
       end
@@ -187,19 +194,15 @@ RSpec.describe 'including resources alongside normal operations', type: :request
   end
 
   shared_examples_for :scope_limited_directive_tests do
+    before {
+      header 'POLICY', { scope: { title: :by_article_first_comment_id, message: article.comments.first.id } }
+    }
+
     describe 'one-level deep has_many relationship' do
-      # let(:comments_policy_scope) { Comment.where(id: article.comments.first.id) }
+      let(:comments_policy_scope) { Comment.where(id: article.comments.first.id) }
       let(:include_query) { 'comments' }
 
       context 'authorized for include_has_many_resource for Comment' do
-        before {
-          allow_operation(
-            'include_has_many_resource',
-            source_record: an_instance_of(Article),
-            record_class: Comment,
-            authorizer: chained_authorizer
-          )
-        }
 
         it { is_expected.to be_successful }
 
@@ -215,11 +218,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       let(:comments_policy_scope) { Comment.where(id: article.comments.first.id) }
 
       context 'authorized for both operations' do
-        before do
-          allow_operation('include_has_one_resource', source_record: an_instance_of(Article), related_record: an_instance_of(User), authorizer: chained_authorizer)
-          allow_operation('include_has_many_resource', source_record: an_instance_of(Article), record_class: Comment, authorizer: chained_authorizer)
-        end
-
         it { is_expected.to be_successful }
 
         it 'includes only comments allowed by policy scope and associated with the article' do
@@ -240,13 +238,12 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     describe 'a deep relationship' do
       let(:include_query) { 'author.comments' }
       let(:comments_policy_scope) { Comment.where(id: article.author.comments.first.id) }
+      before {
+        header 'POLICY', { scope: { title: :by_article_first_comment_id, message: article.author.comments.first.id } }
+      }
 
       context 'authorized for first relationship' do
-        before { allow_operation('include_has_one_resource', source_record: an_instance_of(Article), related_record: an_instance_of(User), authorizer: chained_authorizer) }
-
         context 'authorized for second relationship' do
-          before { allow_operation('include_has_many_resource', source_record: an_instance_of(User), record_class: Comment, authorizer: chained_authorizer) }
-
           it { is_expected.to be_successful }
 
           it 'includes the first level resource' do
@@ -257,6 +254,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
           describe 'second level resources' do
             it 'includes only resources allowed by policy scope' do
               second_level_items = json_included.select { |item| item['type'] == 'comments' }
+
               expect(second_level_items.length).to eq(comments_policy_scope.length)
               expect(
                 second_level_items.map { |i| i['id'] }
@@ -328,14 +326,24 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     }
 
-    let(:forbidden_policy) { { index: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { index: { klass: 'Article', message: article.id }} }
+    let(:forbidden_policy) {
+      { forbidden: { action: :index, klass: "Article"} }
+    }
+    let(:valid_policy) {
+      { scope:
+        {
+          title: :by_article_id,
+          message: article.id,
+          models: ["Article", "Comment"]
+        }
+      }
+    }
 
     subject(:last_response) { get("/articles?include=#{include_query}") }
 
     # TODO: Test properly with multiple articles, not just one.
     include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_tests
+    include_examples :scope_limited_directive_tests
   end
 
   describe 'GET /articles/:id' do
@@ -354,7 +362,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     subject(:last_response) { get("/articles/#{article.external_id}?include=#{include_query}") }
 
     include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_tests
+    include_examples :scope_limited_directive_tests
   end
 
   describe 'PATCH /articles/:id' do
@@ -385,11 +393,14 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     subject(:last_response) { patch("/articles/#{article.external_id}?include=#{include_query}", json) }
 
     include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_tests
+    include_examples :scope_limited_directive_tests
 
-    xcontext 'the request has already failed validations' do
+    context 'the request has already failed validations' do
       let(:include_query) { 'author.comments' }
       let(:attributes_json) { '{ "blank-value": "indifferent" }' }
+      before {
+        header 'POLICY', valid_policy
+      }
 
       it 'does not run include authorizations and fails with validation error' do
         expect(last_response).to be_unprocessable
@@ -404,7 +415,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     end
     let(:forbidden_policy) { { create: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) {{}}
+    let(:valid_policy) { { create: { klass: 'Article', skip_scope: true }} }
     let(:existing_comments) do
       Array.new(2) { Comment.create }
     end
@@ -437,20 +448,16 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     let(:article) { existing_author.articles.first }
 
     subject(:last_response) { post("/articles?include=#{include_query}", json) }
-    # let!(:chained_authorizer) do
-    #   allow_operation(
-    #     'create_resource',
-    #     source_class: Article,
-    #     related_records_with_context: related_records_with_context
-    #   )
-    # end
 
     include_examples :include_directive_tests
     # include_examples :scope_limited_directive_test_modify_relationships
 
-    xcontext 'the request has already failed validations' do
+    context 'the request has already failed validations' do
       let(:include_query) { 'author.comments' }
       let(:attributes_json) { '{ "blank-value": "indifferent" }' }
+      before {
+        header 'POLICY', valid_policy
+      }
 
       it 'does not run include authorizations and fails with validation error' do
         expect(last_response).to be_unprocessable
@@ -474,7 +481,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     subject(:last_response) { get("/articles/#{article.external_id}/articles?include=#{include_query}") }
 
     include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_tests
+    include_examples :scope_limited_directive_tests
   end
 
   describe 'GET /articles/:id/article' do
@@ -493,6 +500,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     subject(:last_response) { get("/articles/#{article.external_id}/article?include=#{include_query}") }
 
     include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_tests
+    include_examples :scope_limited_directive_tests
   end
 end
