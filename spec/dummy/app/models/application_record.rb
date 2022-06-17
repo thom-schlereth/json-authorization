@@ -13,7 +13,8 @@ class ApplicationRecord < ActiveRecord::Base
     self.all
   }
 
-
-
+  scope :by_comment_id, ->(policy) {
+    self.all
+  }
 
 end

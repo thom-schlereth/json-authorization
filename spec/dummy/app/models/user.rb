@@ -14,8 +14,8 @@ class User < ApplicationRecord
     self.all
   }
 
-  scope :show_scope, ->(policy) {
-    self.where('author_id = ?', policy.dig(:show, :message))
-  }
+  # scope :by_author_id_for_comment, ->(policy) {
+  #   self.where('id = ?', policy.dig(:scope, :message))
+  # }
 
 end
