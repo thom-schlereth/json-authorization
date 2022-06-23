@@ -12,7 +12,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
   end
 
   shared_examples_for :include_directive_tests do
-    xdescribe 'one-level deep has_many relationship' do
+    describe 'one-level deep has_many relationship' do
       let(:include_query) { 'comments' }
 
       context 'unauthorized for include_has_many_resource for Comment' do
@@ -68,7 +68,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
     end
 
-    xdescribe 'multiple one-level deep relationships' do
+    describe 'multiple one-level deep relationships' do
       let(:include_query) { 'author,comments' }
 
       context 'unauthorized for include_has_one_resource for article.author' do
@@ -112,7 +112,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
     end
 
-    xdescribe 'a deep relationship' do
+    describe 'a deep relationship' do
       let(:include_query) { 'author.comments' }
 
       context 'unauthorized for first relationship' do
@@ -164,7 +164,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
     end
 
-    xdescribe 'a deep relationship with empty relations' do
+    describe 'a deep relationship with empty relations' do
       context 'first level has_one is nil' do
         let(:include_query) { 'non-existing-article.comments' }
 
@@ -353,13 +353,13 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { show: { klass: 'Article', forbidden: true }} }
+    let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
     let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
 
     subject(:last_response) { get("/articles/#{article.external_id}?include=#{include_query}") }
 
     include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_tests
+    include_examples :scope_limited_directive_tests
   end
 
   describe 'PATCH /articles/:id' do
