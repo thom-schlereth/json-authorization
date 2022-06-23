@@ -23,10 +23,6 @@ class Article < ApplicationRecord
     errors.add(:blank_value, 'must be blank') unless blank_value.blank?
   end
 
-  scope :by_article_first_comment_id, ->(policy) {
-    self.where('id = ?', policy.dig(:scope, :message))
-  }
-
   scope :by_article_id, ->(policy) {
     self.where('articles.id = ?', policy.dig(:scope, :message))
   }
