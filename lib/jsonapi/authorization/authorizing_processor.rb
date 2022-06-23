@@ -40,15 +40,7 @@ module JSONAPI
           include_params = params[:include_directives].include_directives
           resources.each do |id, current_resource|
             source_record = current_resource[:resource]._model
-
-            # source_record = @resource_klass.records_base.first
             dig_include_directive(resource_klass, source_record, include_params)
-            # get_include_directives(include_params)
-            # include_directives.each do |include_item|
-            #   #
-            #
-            #   include_params = include_params[:include_related][include_item]
-            # end
           end
         end
       end
@@ -83,21 +75,25 @@ module JSONAPI
         )
         source_klass = parent_resource.class
         source_id = parent_resource.id
-
         relationship = @resource_klass._relationship(params[:relationship_type].to_sym)
         related_resource =
           case relationship
           when JSONAPI::Relationship::ToOne
-            resources_from_relationship(source_klass, source_id, relationship.name.to_sym, context).first
+            related_resource = resources_from_relationship(source_klass, source_id, relationship.name.to_sym, context).first
+            parent_record = parent_resource._model
+            related_record = related_resource._model unless related_resource.nil?
+            authorizer.show_relationship(source_record: parent_record, related_record: related_record)
           when JSONAPI::Relationship::ToMany
-            # Do nothing — already covered by policy scopes
+            related_resource = resources_from_relationship(source_klass, source_id, relationship.name.to_sym, context).first
+            parent_record = parent_resource._model
+            related_record_class = related_resource.class._model_class unless related_resource.nil?
+            authorizer.show_relationships(source_record: parent_record, related_record_class: related_record_class)
           else
             raise "Unexpected relationship type: #{relationship.inspect}"
           end
-
-        parent_record = parent_resource._model
-        related_record = related_resource._model unless related_resource.nil?
-        authorizer.show_relationship(source_record: parent_record, related_record: related_record)
+        # parent_record = parent_resource._model
+        # related_record = related_resource._model unless related_resource.nil?
+        # authorizer.show_relationship(source_record: parent_record, related_record: related_record)
       end
 
       def authorize_show_related_resource

@@ -7,15 +7,7 @@ class User < ApplicationRecord
   }
 
   scope :scoped_article, ->(policy) {
-    # comment = Comment.find(policy.values.dig(0,:message))
-    # Article.where(comments: comment)
-    # binding.pry
-    # User.where(id: comment.author.id)
     self.all
   }
-
-  # scope :by_author_id_for_comment, ->(policy) {
-  #   self.where('id = ?', policy.dig(:scope, :message))
-  # }
 
 end

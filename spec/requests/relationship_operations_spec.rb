@@ -1,17 +1,14 @@
 require 'spec_helper'
 
 RSpec.describe 'Relationship operations', type: :request do
-  include AuthorizationStubs
+  # include AuthorizationStubs
   fixtures :all
 
   let(:article) { Article.all.sample }
   let(:policy_scope) { Article.none }
+  let(:valid_policy) {}
 
   let(:json_data) { JSON.parse(last_response.body)["data"] }
-
-  before do
-    allow_any_instance_of(ArticlePolicy::Scope).to receive(:resolve).and_return(policy_scope)
-  end
 
   before do
     header 'Content-Type', 'application/vnd.api+json'
@@ -23,24 +20,40 @@ RSpec.describe 'Relationship operations', type: :request do
     let(:comments_on_article) { article.comments }
     let(:comments_policy_scope) { comments_on_article.limit(1) }
 
-    before do
-      allow_any_instance_of(CommentPolicy::Scope).to receive(:resolve).and_return(comments_policy_scope)
-    end
     subject(:last_response) { get("/articles/#{article.external_id}/relationships/comments") }
 
     context 'unauthorized for show_relationship' do
-      before { disallow_operation('show_relationship', source_record: article, related_record: nil) }
+      let(:forbidden_policy) {
+        { forbidden: { action: :show, klass: "Article"} }
+      }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
+
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for show_relationship' do
-      before { allow_operation('show_relationship', source_record: article, related_record: nil) }
+      let(:valid_policy) {
+        { scope: { title: :by_article_first_comment_id, article_id: article.external_id, comment_id: article.comments.first.id } }
+      }
+      before {
+        header 'POLICY', valid_policy
+      }
+
       it { is_expected.to be_ok }
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by ArticlePolicy::Scope' do
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:article_not_found_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found_policy
+        }
+        # let(:policy_scope) { Article.where.not(id: article.id) }
         it { is_expected.to be_not_found }
       end
 
@@ -58,7 +71,7 @@ RSpec.describe 'Relationship operations', type: :request do
     let(:policy_scope) { Article.all }
 
     context 'unauthorized for show_relationship' do
-      before { disallow_operation('show_relationship', source_record: article, related_record: article.author) }
+      # before { disallow_operation('show_relationship', source_record: article, related_record: article.author) }
       it { is_expected.to be_forbidden }
     end
 

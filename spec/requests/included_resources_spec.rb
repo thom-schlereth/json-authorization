@@ -199,7 +199,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
   shared_examples_for :scope_limited_directive_tests do
     describe 'one-level deep has_many relationship' do
       before {
-        header 'POLICY', { scope: { title: :by_article_first_comment_id, message: article.comments.first.id } }
+        header 'POLICY', { scope: { title: :by_articles_first_comment_id, comment_id: article.comments.first.id } }
       }
 
       let(:comments_policy_scope) { Comment.where(id: article.comments.first.id) }
@@ -218,7 +218,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
 
     describe 'multiple one-level deep relationships' do
       before {
-        header 'POLICY', { scope: { title: :by_article_first_comment_id, message: article.comments.first.id } }
+        header 'POLICY', { scope: { title: :by_articles_first_comment_id, comment_id: article.comments.first.id } }
       }
 
       let(:include_query) { 'author,comments' }
@@ -246,7 +246,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       let(:include_query) { 'author.comments' }
       let(:comments_policy_scope) { Comment.where(id: article.author.comments.first.id) }
       before {
-        header 'POLICY', { scope: { title: :by_article_first_comment_id, message: article.author.comments.first.id } }
+        header 'POLICY', { scope: { title: :by_articles_first_comment_id, comment_id: article.author.comments.first.id } }
       }
 
       context 'authorized for first relationship' do

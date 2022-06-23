@@ -9,6 +9,10 @@ class ApplicationRecord < ActiveRecord::Base
     self.all
   }
 
+  scope :by_articles_first_comment_id, ->(policy) {
+    self.all
+  }
+
   scope :by_author_id_for_comment, ->(policy) {
     self.all
   }

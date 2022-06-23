@@ -4,8 +4,12 @@ class Comment < ApplicationRecord
   belongs_to :author, class_name: 'User'
   belongs_to :reviewing_user, class_name: 'User'
 
+  scope :by_articles_first_comment_id, ->(policy) {
+    self.where('comments.id = ?', policy.dig(:scope, :comment_id))
+  }
+
   scope :by_article_first_comment_id, ->(policy) {
-    self.where('comments.id = ?', policy.dig(:scope, :message))
+    self.where('comments.id = ?', policy.dig(:scope, :comment_id))
   }
 
   scope :by_article_id, ->(policy) {
@@ -20,13 +24,5 @@ class Comment < ApplicationRecord
   scope :by_comment_id, ->(policy) {
     self.where('comments.id = ?', policy.dig(:scope, :message))
   }
-
-  # scope :index_scope, ->(policy) {
-  #   self.all
-  # }
-  #
-  # scope :show_scope, ->(policy) {
-  #   self.all
-  # }
 
 end
