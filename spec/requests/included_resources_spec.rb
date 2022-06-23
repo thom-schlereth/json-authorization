@@ -407,7 +407,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     end
-
     let(:forbidden_policy) { { forbidden: { action: :create, klass: 'Article' } } }
     let(:create_special_policy) { { blank: :blank }}
     let(:existing_comments_policy) {
@@ -418,11 +417,9 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         }
       }
     }
-
     let(:existing_comments) do
       Array.new(2) { Comment.create }
     end
-
     let(:attributes_json) { '{}' }
     let(:json) do
       <<-EOS.strip_heredoc
