@@ -124,42 +124,40 @@ RSpec.describe 'Relationship operations', type: :request do
     let(:policy_scope) { Article.all }
     let(:comments_scope) { Comment.all }
 
-    before do
-      allow_any_instance_of(CommentPolicy::Scope).to receive(:resolve).and_return(comments_scope)
-    end
-
     context 'unauthorized for create_to_many_relationship' do
+      let(:forbidden_policy) {
+        { forbidden: { action: :create, klass: "Article"} }
+      }
+
       before {
-        disallow_operation(
-          'create_to_many_relationship',
-          source_record: article,
-          new_related_records: new_comments,
-          relationship_type: :comments
-        )
+        header 'POLICY', forbidden_policy
       }
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for create_to_many_relationship' do
-      before {
-        allow_operation(
-          'create_to_many_relationship',
-          source_record: article,
-          new_related_records: new_comments,
-          relationship_type: :comments
-        )
-      }
       it { is_expected.to be_successful }
 
       context 'limited by policy scope on comments' do
-        let(:comments_scope) { Comment.none }
+        let(:comments_not_found_policy) {
+          { scope: { title: :by_comments_not_found, comment_ids: new_comments.pluck(:id) } }
+        }
+        before {
+          header 'POLICY', comments_not_found_policy
+        }
         it { is_expected.to be_not_found }
       end
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by policy scope on articles' do
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:article_not_found_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found_policy
+        }
+
         it { is_expected.to be_not_found }
       end
     end

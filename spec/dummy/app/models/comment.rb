@@ -16,4 +16,8 @@ class Comment < ApplicationRecord
     self.where('comments.id = ?', policy.dig(:scope, :comment_id))
   }
 
+  scope :by_comments_not_found, ->(policy) {
+    where.not(id: policy.dig(:scope, :comment_ids))
+  }
+
 end

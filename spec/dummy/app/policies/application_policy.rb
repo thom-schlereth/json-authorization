@@ -61,6 +61,8 @@ class ApplicationPolicy
         scope.by_article_external_id(policy)
       when :by_article_not_found
         scope.by_article_not_found(policy)
+      when :by_comments_not_found
+        scope.by_comments_not_found(policy)
       when :by_comment_id
         scope.by_comment_id(policy)
       when :by_article_first_comment_id
