@@ -25,7 +25,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
 
       context 'authorized for include_has_many_resource for Comment' do
-        let(:valid_policy) { { scope: { title: :by_article_external_id, external_id: article.external_id }} }
+        let(:valid_policy) { { scope: { title: :by_article_external_id, article_id: article.external_id }} }
         before {
           header 'POLICY', create_special_policy || valid_policy
         }
@@ -90,7 +90,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
 
       context 'authorized for both operations' do
-        let(:valid_policy) { { scope: { title: :by_article_external_id, external_id: article.external_id }} }
+        let(:valid_policy) { { scope: { title: :by_article_external_id, article_id: article.external_id }} }
 
         before {
           header 'POLICY', create_special_policy || valid_policy
@@ -320,12 +320,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       { forbidden: { action: :index, klass: "Article"} }
     }
     let(:valid_policy) {
-      { scope:
-        {
-          title: :by_article_external_id,
-          external_id: article.external_id
-        }
-      }
+      { scope: { title: :by_article_external_id, article_id: article.external_id } }
     }
 
     subject(:last_response) { get("/articles?include=#{include_query}") }

@@ -83,7 +83,7 @@ RSpec.describe 'Relationship operations', type: :request do
 
     context 'authorized for show_relationship' do
       let(:valid_policy) {
-        { scope: { title: :by_article_id, article_id: article.external_id } }
+        { scope: { title: :by_article_external_id, article_id: article.external_id } }
       }
       before {
         header 'POLICY', valid_policy

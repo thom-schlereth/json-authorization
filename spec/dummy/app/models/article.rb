@@ -24,7 +24,7 @@ class Article < ApplicationRecord
   end
 
   scope :by_article_external_id, ->(policy) {
-    self.where('articles.external_id = ?', policy.dig(:scope, :external_id))
+    self.where('articles.external_id = ?', policy.dig(:scope, :article_id))
   }
 
   scope :by_article_not_found, ->(policy) {
