@@ -134,7 +134,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         end
 
         context 'authorized for second relationship' do
-          before { header 'POLICY', valid_policy }
+          before { header 'POLICY', create_special_policy || valid_policy }
 
           it { is_expected.to be_successful }
 
@@ -149,8 +149,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
                 scope: { title: :by_author_id_for_comment, message: article.author.id }
               }
             }
-
-            before { header 'POLICY', valid_policy }
 
             it 'includes only resources allowed by policy scope' do
               second_level_items = json_included.select { |item| item['type'] == 'comments' }
@@ -330,8 +328,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       { scope:
         {
           title: :by_article_id,
-          message: article.id,
-          models: ["Article", "Comment"]
+          message: article.id
         }
       }
     }
@@ -354,7 +351,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     }
     let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
-    let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
+    let(:valid_policy) {}
 
     subject(:last_response) { get("/articles/#{article.external_id}?include=#{include_query}") }
 
@@ -372,8 +369,8 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { update: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { update: { klass: 'Article', message: article.id }} }
+    let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :update }} }
+    let(:valid_policy) {}
 
     let(:attributes_json) { '{}' }
     let(:json) do
@@ -389,7 +386,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     end
     subject(:last_response) { patch("/articles/#{article.external_id}?include=#{include_query}", json) }
 
-    # include_examples :include_directive_tests
+    include_examples :include_directive_tests
     include_examples :scope_limited_directive_tests
 
     context 'the request has already failed validations' do
@@ -457,8 +454,8 @@ RSpec.describe 'including resources alongside normal operations', type: :request
 
     subject(:last_response) { post("/articles?include=#{include_query}", json) }
 
-    # include_examples :include_directive_tests
-    # include_examples :scope_limited_directive_test_modify_relationships
+    include_examples :include_directive_tests
+    include_examples :scope_limited_directive_test_modify_relationships
 
     context 'the request has already failed validations' do
       let(:include_query) { 'author.comments' }
