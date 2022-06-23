@@ -480,12 +480,12 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { show: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
+    let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
+    let(:valid_policy) { }
 
     subject(:last_response) { get("/articles/#{article.external_id}/articles?include=#{include_query}") }
 
-    # include_examples :include_directive_tests
+    include_examples :include_directive_tests
     include_examples :scope_limited_directive_tests
   end
 
@@ -499,12 +499,12 @@ RSpec.describe 'including resources alongside normal operations', type: :request
         comments: Array.new(2) { Comment.create }
       )
     }
-    let(:forbidden_policy) { { show: { klass: 'Article', forbidden: true }} }
-    let(:valid_policy) { { show: { klass: 'User', message: article.author.id }} }
+    let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
+    let(:valid_policy) {}
 
     subject(:last_response) { get("/articles/#{article.external_id}/article?include=#{include_query}") }
 
-    # include_examples :include_directive_tests
+    include_examples :include_directive_tests
     include_examples :scope_limited_directive_tests
   end
 end
