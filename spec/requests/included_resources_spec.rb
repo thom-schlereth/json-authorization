@@ -6,6 +6,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
   subject { last_response }
   let(:json_included) { JSON.parse(last_response.body)['included'] }
   let(:create_special_policy) {}
+  let(:valid_policy) {}
 
   before do
     header 'Content-Type', 'application/vnd.api+json'
@@ -351,7 +352,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     }
     let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
-    let(:valid_policy) {}
 
     subject(:last_response) { get("/articles/#{article.external_id}?include=#{include_query}") }
 
@@ -370,7 +370,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     }
     let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :update }} }
-    let(:valid_policy) {}
 
     let(:attributes_json) { '{}' }
     let(:json) do
@@ -410,7 +409,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     end
 
     let(:forbidden_policy) { { forbidden: { action: :create, klass: 'Article' } } }
-    let(:valid_policy) { {} }
     let(:create_special_policy) { { blank: :blank }}
     let(:existing_comments_policy) {
       { scope:
@@ -481,7 +479,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     }
     let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
-    let(:valid_policy) { }
 
     subject(:last_response) { get("/articles/#{article.external_id}/articles?include=#{include_query}") }
 
@@ -500,8 +497,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       )
     }
     let(:forbidden_policy) { { forbidden: { klass: 'Article', action: :show }} }
-    let(:valid_policy) {}
-
     subject(:last_response) { get("/articles/#{article.external_id}/article?include=#{include_query}") }
 
     include_examples :include_directive_tests
