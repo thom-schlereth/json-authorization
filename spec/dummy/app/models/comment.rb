@@ -12,17 +12,8 @@ class Comment < ApplicationRecord
     self.where('comments.id = ?', policy.dig(:scope, :comment_id))
   }
 
-  scope :by_article_id, ->(policy) {
-    article = Article.find(policy.dig(:scope, :message))
-    Comment.where(article: article)
-  }
-
-  scope :by_author_id_for_comment, ->(policy) {
-    self.where('comments.author_id = ?', policy.dig(:scope, :message))
-  }
-
   scope :by_comment_id, ->(policy) {
-    self.where('comments.id = ?', policy.dig(:scope, :message))
+    self.where('comments.id = ?', policy.dig(:scope, :comment_id))
   }
 
 end

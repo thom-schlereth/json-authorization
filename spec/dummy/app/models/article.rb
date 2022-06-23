@@ -23,8 +23,8 @@ class Article < ApplicationRecord
     errors.add(:blank_value, 'must be blank') unless blank_value.blank?
   end
 
-  scope :by_article_id, ->(policy) {
-    self.where('articles.id = ?', policy.dig(:scope, :message))
+  scope :by_article_external_id, ->(policy) {
+    self.where('articles.external_id = ?', policy.dig(:scope, :external_id))
   }
 
   scope :by_article_not_found, ->(policy) {
@@ -33,10 +33,6 @@ class Article < ApplicationRecord
 
   scope :by_article_first_comment_id, ->(policy) {
     self.where('articles.external_id = ?', policy.dig(:scope, :article_id))
-  }
-
-  scope :show_scope, ->(policy) {
-    self.all
   }
 
 end

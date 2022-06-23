@@ -1,7 +1,7 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  scope :by_article_id, ->(policy) {
+  scope :by_article_external_id, ->(policy) {
     self.all
   }
 

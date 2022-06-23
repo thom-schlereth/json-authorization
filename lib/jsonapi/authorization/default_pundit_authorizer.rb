@@ -55,11 +55,6 @@ module JSONAPI
         ::Pundit.authorize(user, related_record, 'show?') unless related_record.nil?
       end
 
-      def show_relationships(source_record:, related_record_class:)
-        ::Pundit.authorize(user, source_record, 'show?')
-        ::Pundit.authorize(user, related_record_class, 'index?') unless related_record_class.nil?
-      end
-
       # <tt>GET /resources/:id/another-resource</tt>
       #
       # A query for a record through a +has_one+ association

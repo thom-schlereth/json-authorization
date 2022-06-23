@@ -25,7 +25,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
 
       context 'authorized for include_has_many_resource for Comment' do
-        let(:valid_policy) { { scope: { title: :by_article_id, message: article.id }} }
+        let(:valid_policy) { { scope: { title: :by_article_external_id, external_id: article.external_id }} }
         before {
           header 'POLICY', create_special_policy || valid_policy
         }
@@ -90,7 +90,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       end
 
       context 'authorized for both operations' do
-        let(:valid_policy) { { scope: { title: :by_article_id, message: article.id }} }
+        let(:valid_policy) { { scope: { title: :by_article_external_id, external_id: article.external_id }} }
 
         before {
           header 'POLICY', create_special_policy || valid_policy
@@ -145,12 +145,6 @@ RSpec.describe 'including resources alongside normal operations', type: :request
           end
 
           describe 'second level resources' do
-            let(:valid_policy) {
-              {
-                scope: { title: :by_author_id_for_comment, message: article.author.id }
-              }
-            }
-
             it 'includes only resources allowed by policy scope' do
               second_level_items = json_included.select { |item| item['type'] == 'comments' }
               expect(second_level_items.length).to eq(article.author.comments.count)
@@ -328,8 +322,8 @@ RSpec.describe 'including resources alongside normal operations', type: :request
     let(:valid_policy) {
       { scope:
         {
-          title: :by_article_id,
-          message: article.id
+          title: :by_article_external_id,
+          external_id: article.external_id
         }
       }
     }
@@ -413,7 +407,7 @@ RSpec.describe 'including resources alongside normal operations', type: :request
       { scope:
         {
           title: :by_comment_id,
-          message: existing_comments.first.id
+          comment_id: existing_comments.first.id
         }
       }
     }

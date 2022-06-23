@@ -53,7 +53,6 @@ RSpec.describe 'Relationship operations', type: :request do
         before {
           header 'POLICY', article_not_found_policy
         }
-        # let(:policy_scope) { Article.where.not(id: article.id) }
         it { is_expected.to be_not_found }
       end
 
@@ -71,18 +70,39 @@ RSpec.describe 'Relationship operations', type: :request do
     let(:policy_scope) { Article.all }
 
     context 'unauthorized for show_relationship' do
-      # before { disallow_operation('show_relationship', source_record: article, related_record: article.author) }
+      let(:forbidden_policy) {
+        { forbidden: { action: :show, klass: "Article"} }
+      }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
+
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for show_relationship' do
-      before { allow_operation('show_relationship', source_record: article, related_record: article.author) }
+      let(:valid_policy) {
+        { scope: { title: :by_article_id, article_id: article.external_id } }
+      }
+      before {
+        header 'POLICY', valid_policy
+      }
+
+      # before { allow_operation('show_relationship', source_record: article, related_record: article.author) }
       it { is_expected.to be_ok }
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by policy scope' do
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:article_not_found_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found_policy
+        }
+
+        # let(:policy_scope) { Article.where.not(id: article.id) }
         it { is_expected.to be_not_found }
       end
     end
