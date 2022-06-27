@@ -1,5 +1,4 @@
 class Article < ApplicationRecord
-
   has_many :comments
   has_many :tags, as: :taggable
   belongs_to :author, class_name: 'User'
@@ -29,6 +28,10 @@ class Article < ApplicationRecord
 
   scope :by_article_not_found, ->(policy) {
     where.not(policy.dig(:scope, :article_id))
+  }
+
+  scope :by_comments_not_found, ->(policy) {
+    self.where('articles.external_id = ?', policy.dig(:scope, :article_id))
   }
 
   scope :by_article_first_comment_id, ->(policy) {

@@ -22,7 +22,12 @@ class ArticlePolicy < ApplicationPolicy
   end
 
   def replace_comments?(_comments)
-    true
+    return true unless policy
+    if policy.dig(:forbidden, :action) == :create && policy.dig(:forbidden, :klass) == record.class.to_s
+      false
+    else
+      true
+    end
   end
 
   def remove_from_comments?(_comment)
@@ -30,10 +35,20 @@ class ArticlePolicy < ApplicationPolicy
   end
 
   def replace_author?(_author)
-    true
+    return true unless policy
+    if policy.dig(:forbidden, :action) == :create && policy.dig(:forbidden, :klass) == record.class.to_s
+      false
+    else
+      true
+    end
   end
 
   def remove_author?
-    true
+    return true unless policy
+    if policy.dig(:forbidden, :action) == :create && policy.dig(:forbidden, :klass) == record.class.to_s
+      false
+    else
+      true
+    end
   end
 end

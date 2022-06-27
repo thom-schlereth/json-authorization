@@ -188,6 +188,7 @@ module JSONAPI
           relationship_method: relationship_method,
           related_record_or_records: new_related_records
         )
+
       end
 
       # <tt>DELETE /resources/:id/relationships/other-resources</tt>

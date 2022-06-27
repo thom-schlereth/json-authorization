@@ -2,7 +2,7 @@ class ArticleResource < JSONAPI::Resource
   include JSONAPI::Authorization::PunditScopedResource
 
   has_many :comments, acts_as_set: true, merge_resource_records: false
-  has_many :tags
+  has_many :tags, acts_as_set: true, exclude_links: :default
   has_one :author, class_name: 'User'
 
   primary_key :external_id

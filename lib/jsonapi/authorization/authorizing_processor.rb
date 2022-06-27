@@ -151,7 +151,6 @@ module JSONAPI
 
       def authorize_replace_to_one_relationship
         return authorize_remove_to_one_relationship if params[:key_value].nil?
-
         source_resource = @resource_klass.find_by_key(
           params[:resource_id],
           context: context
@@ -253,17 +252,13 @@ module JSONAPI
 
       def authorize_replace_polymorphic_to_one_relationship
         return authorize_remove_to_one_relationship if params[:key_value].nil?
-
-        source_resource = @resource_klass.find_by_key(
-          params[:resource_id],
-          context: context
-        )
+        # source_record = @resource_klass._model_name.safe_constantize.find(params[:resource_id])
+        # source_resource = JSONAPI::Resource.new(source_record, context)
+        source_resource = @resource_klass.find_by_key(params[:resource_id], context)
         source_record = source_resource._model
-
         # Fetch the name of the new class based on the incoming polymorphic
         # "type" value. This will fail if there is no associated resource for the
         # incoming "type" value so this shouldn't leak constants
-
         related_record_class_name = source_resource
           .send(:_model_class_name, params[:key_type], context)
 
@@ -275,6 +270,7 @@ module JSONAPI
             params[:key_value],
             context: context
           )
+
         new_related_record = new_related_resource._model unless new_related_resource.nil?
 
         relationship_type = params[:relationship_type].to_sym

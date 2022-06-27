@@ -21,6 +21,10 @@ class ApplicationRecord < ActiveRecord::Base
     self.all
   }
 
+  scope :by_tag_not_found, ->(policy) {
+    self.all
+  }
+
   scope :by_comments_not_found, ->(policy) {
     self.all
   }
