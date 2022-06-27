@@ -20,4 +20,9 @@ class Comment < ApplicationRecord
     where.not(id: policy.dig(:scope, :comment_ids))
   }
 
+  scope :by_comments_cant_be_destroyed, ->(policy) {
+    self.none
+  }
+
+
 end

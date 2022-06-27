@@ -1,15 +1,16 @@
 class ArticlePolicy < ApplicationPolicy
 
-  def destroy?
-    true
-  end
-
   def create_with_author?(_author)
     true
   end
 
   def create_with_comments?(_comments)
-    true
+    return true unless policy
+    if policy.dig(:forbidden, :action) == :create && policy.dig(:forbidden, :klass) == record.to_s
+      false
+    else
+      true
+    end
   end
 
   def add_to_comments?(_comments)
@@ -31,7 +32,12 @@ class ArticlePolicy < ApplicationPolicy
   end
 
   def remove_from_comments?(_comment)
-    true
+    return true unless policy
+    if policy.dig(:forbidden, :action) == :destroy && policy.dig(:forbidden, :klass) == "Comment"
+      false
+    else
+      true
+    end
   end
 
   def replace_author?(_author)
@@ -45,7 +51,7 @@ class ArticlePolicy < ApplicationPolicy
 
   def remove_author?
     return true unless policy
-    if policy.dig(:forbidden, :action) == :create && policy.dig(:forbidden, :klass) == record.class.to_s
+    if policy.dig(:forbidden, :action) == :destroy && policy.dig(:forbidden, :klass) == "Author"
       false
     else
       true

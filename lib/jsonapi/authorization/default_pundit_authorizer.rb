@@ -106,6 +106,7 @@ module JSONAPI
       # the relationship name, and an Array of new related records.
       def create_resource(source_class:, related_records_with_context:)
         ::Pundit.authorize(user, source_class, 'create?')
+
         related_records_with_context.each do |data|
           relation_name = data[:relation_name]
           records = data[:records]
@@ -120,6 +121,7 @@ module JSONAPI
             end
           else
             Array(records).each do |record|
+
               ::Pundit.authorize(user, record, 'update?')
             end
           end

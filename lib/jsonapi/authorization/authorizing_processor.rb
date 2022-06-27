@@ -133,6 +133,7 @@ module JSONAPI
       end
 
       def authorize_create_resource
+        # binding.pry
         source_class = resource_klass._model_class
         authorizer.create_resource(
           source_class: source_class,
@@ -229,7 +230,6 @@ module JSONAPI
         if related_records.size != params[:associated_keys].uniq.size
           fail JSONAPI::Exceptions::RecordNotFound, params[:associated_keys]
         end
-
         authorizer.remove_to_many_relationship(
           source_record: source_record,
           related_records: related_records,

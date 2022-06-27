@@ -33,4 +33,8 @@ class ApplicationRecord < ActiveRecord::Base
     self.all
   }
 
+  scope :by_comments_cant_be_destroyed, ->(policy) {
+    self.all
+  }
+
 end

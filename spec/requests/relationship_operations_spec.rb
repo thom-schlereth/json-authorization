@@ -22,9 +22,7 @@ RSpec.describe 'Relationship operations', type: :request do
     subject(:last_response) { get("/articles/#{article.external_id}/relationships/comments") }
 
     context 'unauthorized for show_relationship' do
-      let(:forbidden_policy) {
-        { forbidden: { action: :show, klass: "Article"} }
-      }
+      let(:forbidden_policy) { { forbidden: { action: :show, klass: "Article" } } }
 
       before {
         header 'POLICY', forbidden_policy
@@ -66,7 +64,6 @@ RSpec.describe 'Relationship operations', type: :request do
     subject(:last_response) { get("/articles/#{article.external_id}/relationships/author") }
 
     let(:article) { articles(:article_with_author) }
-    # let(:policy_scope) { Article.all }
 
     context 'unauthorized for show_relationship' do
       let(:forbidden_policy) {
@@ -88,7 +85,6 @@ RSpec.describe 'Relationship operations', type: :request do
         header 'POLICY', valid_policy
       }
 
-      # before { allow_operation('show_relationship', source_record: article, related_record: article.author) }
       it { is_expected.to be_ok }
 
       # If this happens in real life, it's mostly a bug. We want to document the
@@ -101,7 +97,6 @@ RSpec.describe 'Relationship operations', type: :request do
           header 'POLICY', article_not_found_policy
         }
 
-        # let(:policy_scope) { Article.where.not(id: article.id) }
         it { is_expected.to be_not_found }
       end
     end
@@ -120,8 +115,6 @@ RSpec.describe 'Relationship operations', type: :request do
       EOS
     end
     subject(:last_response) { post("/articles/#{article.external_id}/relationships/comments", json) }
-    # let(:policy_scope) { Article.all }
-    # let(:comments_scope) { Comment.all }
 
     context 'unauthorized for create_to_many_relationship' do
       let(:forbidden_policy) {
@@ -281,7 +274,7 @@ RSpec.describe 'Relationship operations', type: :request do
 
       context 'unauthorized for remove_to_one_relationship' do
         let(:forbidden_policy) {
-          { forbidden: { action: :create, klass: "Article"} }
+          { forbidden: { action: :destroy, klass: "Author"} }
         }
 
         before {
@@ -413,7 +406,7 @@ RSpec.describe 'Relationship operations', type: :request do
     end
   end
 
-  xdescribe 'DELETE /articles/:id/relationships/comments' do
+  describe 'DELETE /articles/:id/relationships/comments' do
     let(:article) { articles(:article_with_comments) }
     let(:comments_to_remove) { article.comments.limit(2) }
     let(:json) do
@@ -427,85 +420,82 @@ RSpec.describe 'Relationship operations', type: :request do
       EOS
     end
     subject(:last_response) { delete("/articles/#{article.external_id}/relationships/comments", json) }
-    let(:policy_scope) { Article.all }
-    let(:comments_scope) { Comment.all }
-
-    before do
-      allow_any_instance_of(CommentPolicy::Scope).to receive(:resolve).and_return(comments_scope)
-    end
 
     context 'unauthorized for remove_to_many_relationship' do
       before do
-        disallow_operation(
-          'remove_to_many_relationship',
-          source_record: article,
-          related_records: [comments_to_remove.first, comments_to_remove.second],
-          relationship_type: :comments
-        )
       end
+      let(:forbidden_policy) {
+        { forbidden: { action: :destroy, klass: "Comment"} }
+      }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
 
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for remove_to_many_relationship' do
       context 'not limited by policy scopes' do
-        before do
-          allow_operation(
-            'remove_to_many_relationship',
-            source_record: article,
-            related_records: [comments_to_remove.first, comments_to_remove.second],
-            relationship_type: :comments
-          )
-        end
-
         it { is_expected.to be_successful }
       end
 
       context 'limited by policy scope on comments' do
-        let(:comments_scope) { Comment.none }
-        before do
-          disallow_operation('remove_to_many_relationship', source_record: article, related_records: comments_to_remove, relationship_type: :comments)
-        end
+        let(:comments_cant_be_destroyed) {
+          { scope: { title: :by_comments_cant_be_destroyed } }
+        }
+        before {
+          header 'POLICY', comments_cant_be_destroyed
+        }
 
-        it { is_expected.to be_not_found }
+        it {
+          is_expected.to be_not_found }
       end
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by policy scope on articles' do
-        before do
-          allow_operation(
-            'remove_to_many_relationship',
-            source_record: article,
-            related_records: [comments_to_remove.first, comments_to_remove.second],
-            relationship_type: :comments
-          )
-        end
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:article_not_found) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found
+        }
+
         it { is_expected.to be_not_found }
       end
     end
   end
 
-  xdescribe 'DELETE /articles/:id/relationships/author' do
+  describe 'DELETE /articles/:id/relationships/author' do
     subject(:last_response) { delete("/articles/#{article.external_id}/relationships/author") }
-
     let(:article) { articles(:article_with_author) }
-    let(:policy_scope) { Article.all }
 
     context 'unauthorized for remove_to_one_relationship' do
-      before { disallow_operation('remove_to_one_relationship', source_record: article, relationship_type: :author) }
+      let(:forbidden_policy) {
+        { forbidden: { action: :destroy, klass: "Author"} }
+      }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
+
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for remove_to_one_relationship' do
-      before { allow_operation('remove_to_one_relationship', source_record: article, relationship_type: :author) }
       it { is_expected.to be_successful }
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by policy scope' do
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:article_not_found) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found
+        }
+
         it { is_expected.to be_not_found }
       end
     end

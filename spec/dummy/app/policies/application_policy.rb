@@ -43,6 +43,15 @@ class ApplicationPolicy
     end
   end
 
+  def destroy?
+    return true unless policy
+    if policy.dig(:forbidden, :action) == :destroy && policy.dig(:forbidden, :klass) == record.class.to_s
+      false
+    else
+      true
+    end
+  end
+
   class Scope < Struct.new(:context, :scope)
 
     attr_reader :policy, :user, :scope
@@ -71,6 +80,8 @@ class ApplicationPolicy
         scope.by_article_first_comment_id(policy)
       when :by_articles_first_comment_id
         scope.by_articles_first_comment_id(policy)
+      when :by_comments_cant_be_destroyed
+        scope.by_comments_cant_be_destroyed(policy)
       else
         model.all
       end

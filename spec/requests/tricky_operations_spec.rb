@@ -18,7 +18,7 @@ RSpec.describe 'Tricky operations', type: :request do
     header 'Content-Type', 'application/vnd.api+json'
   end
 
-  xdescribe 'POST /comments (with relationships link to articles)' do
+  describe 'POST /comments (with relationships link to articles)' do
     subject(:last_response) { post("/comments", json) }
     let(:json) do
       <<-EOS.strip_heredoc
@@ -37,55 +37,37 @@ RSpec.describe 'Tricky operations', type: :request do
       }
       EOS
     end
-    let(:related_records_with_context) do
-      [{
-        relation_name: :article,
-        relation_type: :to_one,
-        records: article
-      }]
-    end
 
     context 'authorized for create_resource on Comment and newly associated article' do
-      # let(:policy_scope) { Article.where(id: article.id) }
-      # before { allow_operation('create_resource', source_class: Comment, related_records_with_context: related_records_with_context) }
-
-      it {
-        is_expected.to be_successful
-      }
+      it { is_expected.to be_successful }
     end
 
     context 'unauthorized for create_resource on Comment and newly associated article' do
-      let(:policy_scope) { Article.where(id: article.id) }
-      before { disallow_operation('create_resource', source_class: Comment, related_records_with_context: related_records_with_context) }
+      let(:forbidden_policy) { { forbidden: { action: :create, klass: "Comment" } } }
 
-      it {
-        is_expected.to be_forbidden
-       }
+      before {
+        header 'POLICY', forbidden_policy
+      }
+
+      it { is_expected.to be_forbidden }
 
       context 'which is out of scope' do
-        let(:policy_scope) { Article.none }
+        let(:article_not_found_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found_policy
+        }
 
         it { is_expected.to be_not_found }
       end
     end
   end
 
-  xdescribe 'POST /articles (with relationships link to comments)' do
+  describe 'POST /articles (with relationships link to comments)' do
     let!(:new_comments) do
       Array.new(2) { Comment.create }
     end
-    let(:related_records_with_context) do
-      [{
-        relation_name: :comments,
-        relation_type: :to_many,
-        records: new_comments
-      }]
-    end
-    let(:comments_policy_scope) { Comment.all }
-    before do
-      allow_any_instance_of(CommentPolicy::Scope).to receive(:resolve).and_return(comments_policy_scope)
-    end
-
     let(:json) do
       <<-EOS.strip_heredoc
       {
@@ -107,15 +89,17 @@ RSpec.describe 'Tricky operations', type: :request do
     subject(:last_response) { post("/articles", json) }
 
     context 'authorized for create_resource on Article and newly associated comments' do
-      let(:policy_scope) { Article.where(id: "new-article-id") }
-      before { allow_operation('create_resource', source_class: Article, related_records_with_context: related_records_with_context) }
-
       it { is_expected.to be_successful }
     end
 
     context 'unauthorized for create_resource on Article and newly associated comments' do
       let(:policy_scope) { Article.where(id: "new-article-id") }
-      before { disallow_operation('create_resource', source_class: Article, related_records_with_context: related_records_with_context) }
+
+      let(:forbidden_policy) { { forbidden: { action: :create, klass: "Article" } } }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
 
       it { is_expected.to be_forbidden }
     end
@@ -132,7 +116,7 @@ RSpec.describe 'Tricky operations', type: :request do
             "taggable": {
               "data": {
                 "id": "#{article.external_id}",
-                "type": "articles"
+                "type": "Article"
               }
             }
           }
@@ -141,57 +125,35 @@ RSpec.describe 'Tricky operations', type: :request do
       EOS
     end
 
-    # let(:related_records_with_context) do
-    #   [{
-    #     relation_name: :taggable,
-    #     relation_type: :to_one,
-    #     records: article
-    #   }]
-    # end
-
     context 'authorized for create_resource on Tag and newly associated article' do
-      let(:valid_policy) {
-        # { scope: { title: :by_article_first_comment_id, article_id: article.external_id, comment_id: article.comments.first.id } }
-      }
-      before {
-        header 'POLICY', valid_policy
-      }
-      # let(:policy_scope) { Article.where(id: article.id) }
-      # before {
-      #   allow_operation('create_resource', source_class: Tag, related_records_with_context: related_records_with_context)
-      # }
       it { is_expected.to be_successful }
     end
 
     context 'unauthorized for create_resource on Tag and newly associated article' do
-      let(:policy_scope) { Article.where(id: article.id) }
-      before { disallow_operation('create_resource', source_class: Tag, related_records_with_context: related_records_with_context) }
+      let(:forbidden_policy) { { forbidden: { action: :create, klass: "Tag" } } }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
 
       it { is_expected.to be_forbidden }
 
       context 'which is out of scope' do
-        let(:policy_scope) { Article.none }
+        let(:article_not_found_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', article_not_found_policy
+        }
 
         it { is_expected.to be_not_found }
       end
     end
   end
 
-  xdescribe 'PATCH /articles/:id (mass-modifying relationships)' do
+  describe 'PATCH /articles/:id (mass-modifying relationships)' do
     let!(:new_comments) do
       Array.new(2) { Comment.create }
-    end
-    let(:related_records_with_context) do
-      [{
-        relation_name: :comments,
-        relation_type: :to_many,
-        records: new_comments
-      }]
-    end
-    let(:policy_scope) { Article.where(id: article.id) }
-    let(:comments_policy_scope) { Comment.all }
-    before do
-      allow_any_instance_of(CommentPolicy::Scope).to receive(:resolve).and_return(comments_policy_scope)
     end
 
     let(:json) do
@@ -216,33 +178,33 @@ RSpec.describe 'Tricky operations', type: :request do
 
     context 'authorized for replace_fields on article and all new records' do
       context 'not limited by Comments policy scope' do
-        before { allow_operation('replace_fields', source_record: article, related_records_with_context: related_records_with_context) }
         it { is_expected.to be_successful }
       end
 
       context 'limited by Comments policy scope' do
-        let(:comments_policy_scope) { Comment.where("id NOT IN (?)", new_comments.map(&:id)) }
-        let(:related_records_with_context) do
-          [{
-            relation_name: :comments,
-            relation_type: :to_many,
-            records: new_comments
-          }]
-        end
-        before { disallow_operation('replace_fields', source_record: article, related_records_with_context: related_records_with_context) }
+        let(:comments_not_found_policy) {
+          { scope: { title: :by_comments_not_found, article_id: article.external_id, comment_ids: new_comments.pluck(:id) } }
+        }
+        before {
+          header 'POLICY', comments_not_found_policy
+        }
 
         it { is_expected.to be_not_found }
       end
     end
 
     context 'unauthorized for replace_fields on article and all new records' do
-      before { disallow_operation('replace_fields', source_record: article, related_records_with_context: related_records_with_context) }
+      let(:forbidden_policy) { { forbidden: { action: :create, klass: "Article" } } }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
 
       it { is_expected.to be_forbidden }
     end
   end
 
-  xdescribe 'PATCH /articles/:id (nullifying to-one relationship)' do
+  describe 'PATCH /articles/:id (nullifying to-one relationship)' do
     let(:article) { articles(:article_with_author) }
     let(:json) do
       <<-EOS.strip_heredoc
@@ -255,16 +217,7 @@ RSpec.describe 'Tricky operations', type: :request do
       }
       EOS
     end
-    let(:policy_scope) { Article.all }
     subject(:last_response) { patch("/articles/#{article.external_id}", json) }
-
-    before do
-      allow_operation(
-        'replace_fields',
-        source_record: article,
-        related_records_with_context: [{ relation_type: :to_one, relation_name: :author, records: nil }]
-      )
-    end
 
     it { is_expected.to be_successful }
   end
