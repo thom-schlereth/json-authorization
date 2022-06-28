@@ -1,18 +1,11 @@
 require 'spec_helper'
 
 RSpec.describe 'Related resources operations', type: :request do
-  include AuthorizationStubs
   fixtures :all
 
   let(:article) { Article.all.sample }
   let(:authorizations) { {} }
-  let(:policy_scope) { Article.none }
-
   let(:json_data) { JSON.parse(last_response.body)["data"] }
-
-  before do
-    allow_any_instance_of(ArticlePolicy::Scope).to receive(:resolve).and_return(policy_scope)
-  end
 
   before do
     header 'Content-Type', 'application/vnd.api+json'
@@ -21,29 +14,40 @@ RSpec.describe 'Related resources operations', type: :request do
   describe 'GET /articles/:id/comments' do
     subject(:last_response) { get("/articles/#{article.external_id}/comments") }
     let(:article) { articles(:article_with_comments) }
-
-    let(:policy_scope) { Article.all }
     let(:comments_on_article) { article.comments }
     let(:comments_class) { comments_on_article.first.class }
-    let(:comments_policy_scope) { comments_on_article.limit(1) }
-
-    before do
-      allow_any_instance_of(CommentPolicy::Scope).to receive(:resolve).and_return(comments_policy_scope)
-    end
 
     context 'unauthorized for show_related_resources' do
-      before { disallow_operation('show_related_resources', source_record: article, related_record_class: comments_class) }
+      let(:forbidden_policy) { { forbidden: { action: :index, klass: "Comment" } } }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
+
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for show_related_resources' do
-      before { allow_operation('show_related_resources', source_record: article, related_record_class: comments_class) }
+      let(:comments_policy_scope) { comments_on_article.limit(1) }
+      let(:valid_policy) {
+        { scope: { title: :by_article_first_comment_id, article_id: article.external_id, comment_id: comments_policy_scope.first.id } }
+      }
+      before {
+        header 'POLICY', valid_policy
+      }
+
       it { is_expected.to be_ok }
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by policy scope' do
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:valid_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', valid_policy
+        }
+
         it { is_expected.to be_not_found }
       end
 
@@ -57,20 +61,30 @@ RSpec.describe 'Related resources operations', type: :request do
   describe 'GET /articles/:id/author' do
     subject(:last_response) { get("/articles/#{article.external_id}/author") }
     let(:article) { articles(:article_with_author) }
-    let(:policy_scope) { Article.all }
 
     context 'unauthorized for show_related_resource' do
-      before { disallow_operation('show_related_resource', source_record: article, related_record: article.author) }
+      let(:forbidden_policy) { { forbidden: { action: :show, klass: "User" } } }
+
+      before {
+        header 'POLICY', forbidden_policy
+      }
+
       it { is_expected.to be_forbidden }
     end
 
     context 'authorized for show_related_resource' do
-      before { allow_operation('show_related_resource', source_record: article, related_record: article.author) }
+      it { is_expected.to be_successful }
 
       # If this happens in real life, it's mostly a bug. We want to document the
       # behaviour in that case anyway, as it might be surprising.
       context 'limited by policy scope' do
-        let(:policy_scope) { Article.where.not(id: article.id) }
+        let(:valid_policy) {
+          { scope: { title: :by_article_not_found, article_id: article.external_id } }
+        }
+        before {
+          header 'POLICY', valid_policy
+        }
+
         it { is_expected.to be_not_found }
       end
     end
