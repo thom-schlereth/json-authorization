@@ -1,18 +1,12 @@
 require 'spec_helper'
 
 RSpec.describe 'Tricky operations', type: :request do
-  # include AuthorizationStubs
   fixtures :all
 
   let(:article) { Article.all.sample }
-  # let(:policy_scope) { Article.none }
 
   subject { last_response }
   let(:json_data) { JSON.parse(last_response.body)["data"] }
-
-  # before do
-  #   allow_any_instance_of(ArticlePolicy::Scope).to receive(:resolve).and_return(policy_scope)
-  # end
 
   before do
     header 'Content-Type', 'application/vnd.api+json'
@@ -93,7 +87,7 @@ RSpec.describe 'Tricky operations', type: :request do
     end
 
     context 'unauthorized for create_resource on Article and newly associated comments' do
-      let(:policy_scope) { Article.where(id: "new-article-id") }
+      # let(:policy_scope) { Article.where(id: "new-article-id") }
 
       let(:forbidden_policy) { { forbidden: { action: :create, klass: "Article" } } }
 
