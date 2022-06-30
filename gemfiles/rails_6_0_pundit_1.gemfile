@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 
 gem "jsonapi-resources", "~> 10.7"
-gem "rails", ">= 6.0.0"
+gem "rails", "~> 6.1.5"
 gem "pundit", "~> 1.0"
 
 group :development, :test do
