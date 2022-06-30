@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   # spec.add_dependency "jsonapi-resources", "~> 0.9.12"
   spec.add_dependency "jsonapi-resources", "~> 0.10.7"
   spec.add_dependency "pundit", ">= 1.0.0", "< 3.0.0"
-  spec.add_dependency "rails", "~> 6.0.0"
+  # spec.add_dependency "rails", "~> 6.0.0"
 
   spec.add_development_dependency "appraisal"
   spec.add_development_dependency "bundler", ">= 1.11"
