@@ -140,6 +140,8 @@ RSpec.describe 'including resources alongside normal operations', type: :request
           it { is_expected.to be_successful }
 
           it 'includes the first level resource' do
+            require "pry"
+            binding.pry
             json_users = json_included.select { |item| item['type'] == 'users' }
             expect(json_users).to include(a_hash_including('id' => article.author.id.to_s))
           end

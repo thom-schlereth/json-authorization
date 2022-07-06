@@ -133,7 +133,6 @@ module JSONAPI
       end
 
       def authorize_create_resource
-        # binding.pry
         source_class = resource_klass._model_class
         authorizer.create_resource(
           source_class: source_class,
@@ -146,7 +145,6 @@ module JSONAPI
           operation_resource_id,
           context: context
         )._model
-
         authorizer.remove_resource(source_record: record)
       end
 
